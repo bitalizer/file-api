@@ -1,16 +1,25 @@
 package com.hrblizz.fileapi.data.dtos
 
 import org.springframework.format.annotation.DateTimeFormat
-import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDateTime
+import javax.validation.constraints.Future
+import javax.validation.constraints.NotBlank
+import javax.validation.constraints.Size
 
 
-data class FileUploadRequest(
-    val name: String,
-    val contentType: String,
-    val source: String,
+class FileUploadRequest(
+    @field:NotBlank
+    @field:Size(min = 4, max = 255)
+    val name: String = "",
+    @field:NotBlank
+    @field:Size(min = 1, max = 255)
+    val contentType: String = "",
+    @field:NotBlank
+    @field:Size(min = 3, max = 255)
+    val source: String = "",
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @field:Future
     val expireTime: LocalDateTime?,
-    val content: MultipartFile,
-    val meta: String
+    @field:NotBlank
+    val meta: String = ""
 )
