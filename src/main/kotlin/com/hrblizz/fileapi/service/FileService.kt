@@ -41,6 +41,7 @@ class FileService(
 
     fun getFileMetaDataBatch(fileMetaDataBatchRequest: FileMetaDataBatchRequest): FileMetaDataBatchResponse {
         val metadataList = fileMetadataRepository.findAllById(fileMetaDataBatchRequest.tokens)
+            .filter { it.expireTime == null || it.expireTime.isAfter(LocalDateTime.now()) }
         val metadataMap = metadataList.associate { it.token to mapToFileResponse(it) }
         return FileMetaDataBatchResponse(metadataMap)
     }
@@ -65,6 +66,7 @@ class FileService(
 
     private fun getFileMetadataByToken(token: String): FileMetadata {
         return fileMetadataRepository.findById(token)
+            .filter { it.expireTime == null || it.expireTime.isAfter(LocalDateTime.now()) }
             .orElseThrow { NotFoundException("File with token $token not found") }
     }
 
