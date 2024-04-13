@@ -7,23 +7,27 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
+import javax.validation.Valid
 
 @RestController
+@Validated
 @RequestMapping("/files")
 class FileController(private val fileService: FileService) {
 
     @PostMapping(consumes = [MULTIPART_FORM_DATA_VALUE], produces = [APPLICATION_JSON_VALUE])
     fun uploadFile(
-        fileUploadRequest: FileUploadRequest
+        @Valid fileUploadRequest: FileUploadRequest, @RequestPart("content") file: MultipartFile
     ): ResponseEntity<FileUploadResponse> {
 
-        val fileUploadResponse = fileService.uploadFile(fileUploadRequest)
+        val fileUploadResponse = fileService.uploadFile(fileUploadRequest, file)
         return ResponseEntity.ok(fileUploadResponse)
     }
 
     @PostMapping("/metas", consumes = [APPLICATION_JSON_VALUE], produces = [APPLICATION_JSON_VALUE])
-    fun getFileMetaDataBatch(@RequestBody fileMetaDataBatchRequest: FileMetaDataBatchRequest): ResponseEntity<FileMetaDataBatchResponse> {
+    fun getFileMetaDataBatch(@Valid @RequestBody fileMetaDataBatchRequest: FileMetaDataBatchRequest): ResponseEntity<FileMetaDataBatchResponse> {
         val fileMetaDataBatchResponse = fileService.getFileMetaDataBatch(fileMetaDataBatchRequest)
         return ResponseEntity.ok(fileMetaDataBatchResponse)
     }

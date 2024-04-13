@@ -9,6 +9,7 @@ import com.hrblizz.fileapi.data.dtos.*
 import com.hrblizz.fileapi.data.entities.FileMetadata
 import com.hrblizz.fileapi.data.repository.FileMetadataRepository
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDateTime
 import java.util.*
 
@@ -19,13 +20,13 @@ class FileService(
     private val objectMapper: ObjectMapper
 ) {
 
-    fun uploadFile(fileUploadRequest: FileUploadRequest): FileUploadResponse {
+    fun uploadFile(fileUploadRequest: FileUploadRequest, file: MultipartFile): FileUploadResponse {
         val metaMap = parseJsonStringAsMap(fileUploadRequest.meta)
 
         val fileMetadata = FileMetadata(
             UUID.randomUUID().toString(),
             fileUploadRequest.name,
-            fileUploadRequest.content.size,
+            file.size,
             fileUploadRequest.contentType,
             LocalDateTime.now(),
             fileUploadRequest.expireTime,
@@ -34,7 +35,7 @@ class FileService(
         )
 
         val savedFileInfo = fileMetadataRepository.save(fileMetadata)
-        fileStorageService.save(fileUploadRequest.content.inputStream, savedFileInfo.token)
+        fileStorageService.save(file.inputStream, savedFileInfo.token)
 
         return FileUploadResponse(savedFileInfo.token)
     }
@@ -50,11 +51,7 @@ class FileService(
         val fileMetadata = getFileMetadataByToken(token)
         val stream = fileStorageService.load(fileMetadata.token)
         return DownloadFileResponse(
-            fileMetadata.name,
-            fileMetadata.size,
-            fileMetadata.contentType,
-            fileMetadata.createTime,
-            stream
+            fileMetadata.name, fileMetadata.size, fileMetadata.contentType, fileMetadata.createTime, stream
         )
     }
 
