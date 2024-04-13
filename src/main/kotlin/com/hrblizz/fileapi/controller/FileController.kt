@@ -23,9 +23,9 @@ class FileController(private val fileService: FileService) {
     }
 
     @PostMapping("/metas", consumes = [APPLICATION_JSON_VALUE], produces = [APPLICATION_JSON_VALUE])
-    fun getFileMetadata(@RequestBody fileMetaDataRequest: FileMetaDataRequest): ResponseEntity<FileMetaDataMapResponse> {
-        val metadataMap = fileService.getFileMetadata(fileMetaDataRequest)
-        return ResponseEntity.ok(FileMetaDataMapResponse(metadataMap))
+    fun getFileMetaDataBatch(@RequestBody fileMetaDataBatchRequest: FileMetaDataBatchRequest): ResponseEntity<FileMetaDataBatchResponse> {
+        val fileMetaDataBatchResponse = fileService.getFileMetaDataBatch(fileMetaDataBatchRequest)
+        return ResponseEntity.ok(fileMetaDataBatchResponse)
     }
 
     @GetMapping("/{token}")
