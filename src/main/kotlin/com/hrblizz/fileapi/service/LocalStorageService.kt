@@ -1,5 +1,6 @@
 package com.hrblizz.fileapi.service
 
+import com.hrblizz.fileapi.util.CompressionUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.UrlResource
 import org.springframework.stereotype.Service
@@ -14,7 +15,8 @@ import javax.annotation.PostConstruct
 
 @Service
 class LocalStorageService(
-    @Value("\${storage.dir:uploads}") private val storageDir: String
+    @Value("\${storage.dir:uploads}")
+    private val storageDir: String
 ) : FileStorageService {
 
     private val root: Path = Paths.get(storageDir)
@@ -33,7 +35,7 @@ class LocalStorageService(
             inputStream.use { input ->
                 val outputFile = root.resolve(fileName)
                 Files.newOutputStream(outputFile).use { output ->
-                    input.copyTo(output)
+                    CompressionUtil.compress(input, output)
                 }
             }
         } catch (e: Exception) {
@@ -46,7 +48,7 @@ class LocalStorageService(
             val file = root.resolve(filename)
             val resource = UrlResource(file.toUri())
             if (resource.exists() || resource.isReadable) {
-                return resource.inputStream
+                return CompressionUtil.decompress(resource.inputStream)
             } else {
                 throw RuntimeException("Could not read the file!")
             }
