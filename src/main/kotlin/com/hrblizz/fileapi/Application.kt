@@ -5,11 +5,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
+import org.springframework.scheduling.annotation.EnableScheduling
 import java.util.TimeZone
 import javax.annotation.PostConstruct
 
 @SpringBootApplication
 @EnableMongoRepositories(basePackages = ["com.hrblizz.fileapi.data.repository"])
+@EnableScheduling
 class Application : SpringBootServletInitializer() {
     override fun configure(application: SpringApplicationBuilder): SpringApplicationBuilder {
         return application.sources(Application::class.java)
