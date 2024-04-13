@@ -20,7 +20,6 @@ class FileService(
 ) {
 
     fun uploadFile(fileUploadRequest: FileUploadRequest): FileUploadResponse {
-
         val metaMap = parseJsonStringAsMap(fileUploadRequest.meta)
 
         val fileMetadata = FileMetadata(
@@ -40,17 +39,15 @@ class FileService(
         return FileUploadResponse(savedFileInfo.token)
     }
 
-    fun getFileMetadata(fileMetaDataRequest: FileMetaDataRequest): Map<String, FileMetaDataResponse> {
-        val metadataList = fileMetadataRepository.findAllById(fileMetaDataRequest.tokens)
-        return metadataList.associate { it.token to mapToFileResponse(it) }
+    fun getFileMetaDataBatch(fileMetaDataBatchRequest: FileMetaDataBatchRequest): FileMetaDataBatchResponse {
+        val metadataList = fileMetadataRepository.findAllById(fileMetaDataBatchRequest.tokens)
+        val metadataMap = metadataList.associate { it.token to mapToFileResponse(it) }
+        return FileMetaDataBatchResponse(metadataMap)
     }
 
     fun downloadFileByToken(token: String): DownloadFileResponse {
-        val fileMetadata = fileMetadataRepository.findById(token)
-            .orElseThrow { NotFoundException("File with token $token not found") }
-
-        val stream = fileStorageService.load(fileMetadata.token);
-
+        val fileMetadata = getFileMetadataByToken(token)
+        val stream = fileStorageService.load(fileMetadata.token)
         return DownloadFileResponse(
             fileMetadata.name,
             fileMetadata.size,
@@ -61,12 +58,14 @@ class FileService(
     }
 
     fun deleteFileByToken(token: String) {
+        val fileMetadata = getFileMetadataByToken(token)
+        fileMetadataRepository.deleteById(fileMetadata.token)
+        fileStorageService.delete(fileMetadata.token)
+    }
 
-        fileMetadataRepository.findById(token)
+    private fun getFileMetadataByToken(token: String): FileMetadata {
+        return fileMetadataRepository.findById(token)
             .orElseThrow { NotFoundException("File with token $token not found") }
-
-        fileMetadataRepository.deleteById(token)
-        fileStorageService.delete(token)
     }
 
     private fun mapToFileResponse(fileMetadata: FileMetadata): FileMetaDataResponse {
@@ -80,7 +79,7 @@ class FileService(
         )
     }
 
-    fun parseJsonStringAsMap(json: String): Map<String, Any> {
+    private fun parseJsonStringAsMap(json: String): Map<String, Any> {
         return try {
             objectMapper.readValue(json)
         } catch (e: JsonProcessingException) {
