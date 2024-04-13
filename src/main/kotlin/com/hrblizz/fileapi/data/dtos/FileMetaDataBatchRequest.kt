@@ -1,5 +1,5 @@
 package com.hrblizz.fileapi.data.dtos
 
-data class FileMetaDataRequest(
+data class FileMetaDataBatchRequest(
     val tokens: List<String>
 )
