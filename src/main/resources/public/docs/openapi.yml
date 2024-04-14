@@ -2,15 +2,171 @@ openapi: 3.0.0
 info:
   version: '1.0.0'
   title: File API
+  description: "API for file management"
 
 paths:
   /status:
     get:
-      summary: Status
-      description: Get Status.
+      summary: Retrieve API Status
+      description: Check the status of the File API.
       responses:
         '200':
-          description: It's a response.
+          description: API is up and running.
 
+  /files:
+    post:
+      summary: "Upload file"
+      operationId: "uploadFile"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/FileUploadRequest"
+        required: true
+
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileUploadResponse"
+  /files/metas:
+    post:
+      summary: "Get metadata of files by token"
+      operationId: "getFileMetaDataBatch"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileMetaDataBatchRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileMetaDataBatchResponse"
+  /files/{token}:
+    get:
+      summary: "Download file by token"
+      operationId: "downloadFileByToken"
+      parameters:
+        - name: "token"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          headers:
+            X-Filename:
+              description: "Name of the downloaded file"
+              schema:
+                type: "string"
+            X-Filesize:
+              description: "Size of the downloaded file in bytes"
+              schema:
+                type: "integer"
+            X-CreateTime:
+              description: "Creation time of the downloaded file"
+              schema:
+                type: "string"
+                format: "date-time"
+            Content-Disposition:
+              description: "Content disposition for file attachment"
+              schema:
+                type: "string"
+            Content-Type:
+              description: "Content type of the downloaded file"
+              schema:
+                type: "string"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+                format: "binary"
+        "404":
+          description: "Provided token not found"
+    delete:
+      summary: "Delete file by token"
+      operationId: "deleteFileByToken"
+      parameters:
+        - name: "token"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "204":
+          description: "File removed successfully"
+        "404":
+          description: "Provided token not found"
+components:
+  schemas:
+    FileUploadRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 4
+          maxLength: 255
+        contentType:
+          type: string
+          minLength: 1
+          maxLength: 255
+        source:
+          type: string
+          minLength: 3
+          maxLength: 255
+        expireTime:
+          type: string
+          format: date-time
+        meta:
+          type: string
+        content:
+          type: "string"
+          format: "binary"
+      required:
+        - name
+        - contentType
+        - source
+        - meta
+        - content
+    FileUploadResponse:
+      type: "object"
+      properties:
+        token:
+          type: "string"
+    FileMetaDataBatchRequest:
+      type: "object"
+      properties:
+        tokens:
+          type: "array"
+          items:
+            type: "string"
+    FileMetaDataBatchResponse:
+      type: "object"
+      properties:
+        files:
+          type: "object"
+          additionalProperties:
+            $ref: "#/components/schemas/FileMetaDataResponse"
+    FileMetaDataResponse:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        contentType:
+          type: "string"
+        source:
+          type: "string"
+        expireTime:
+          type: "string"
+          format: "date-time"
+        meta:
+          type: "string"
 security:
-  - basicAuth: []
+  - basicAuth: [ ]
